@@ -6,19 +6,41 @@
     <title>五大信念猜字謎挑戰</title>
     <style>
         :root { --primary: #003a70; }
-        body { font-family: "Microsoft JhengHei", sans-serif; margin: 0; padding: 10px; text-align: center; background: #f4f7f9; touch-action: none; overflow-x: hidden; }
+        body { 
+            font-family: "Microsoft JhengHei", sans-serif; 
+            margin: 0; 
+            padding: 10px; 
+            text-align: center; 
+            background: skyblue; 
+            touch-action: none; 
+            overflow-x: hidden; 
+        }
         
-        /* ▼▼▼ 新增標題樣式 ▼▼▼ */
         h1 {
             color: var(--primary);
             margin: 10px 0 15px 0;
-            font-size: 7vw; /* 手機版字體 */
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+            font-size: 6vw;
+            text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5);
         }
-        @media (min-width: 480px) { h1 { font-size: 36px; } } /* 電腦版字體固定 */
-        /* ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲ */
+        @media (min-width: 480px) { h1 { font-size: 36px; } }
 
         #info-bar { background: white; padding: 10px; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        
+        /* ▼▼▼ 新增按鈕樣式 ▼▼▼ */
+        #submit-btn {
+            background: #28a745; /* 綠色 */
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        #submit-btn:active { background: #218838; transform: translateY(2px); }
+        /* ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲ */
+
         #grid-container { 
             display: grid; 
             grid-template-columns: repeat(12, 1fr); 
@@ -31,41 +53,42 @@
             user-select: none;
         }
         .cell { 
-            background: rgb(0, 195, 255); 
+            background: white; 
             aspect-ratio: 1;
             display: flex; 
             align-items: center; 
             justify-content: center; 
             font-weight: bold; 
-            font-size: 4.5vw; 
+            font-size: 5vw; 
         }
         @media (min-width: 480px) { .cell { font-size: 20px; } }
         .selected { background: #ffeb3b !important; }
         .found { background: #4caf50 !important; color: white; }
-        #word-list { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-top: 15px; padding: 10px; background: #fff; font-size: 13px; text-align: left; }
+        #word-list { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-top: 15px; padding: 10px; background: #fff; font-size: 13px; text-align: left; border-radius: 8px; }
         .word-found { text-decoration: line-through; color: #ccc; }
     </style>
 </head>
 <body>
 
     <h1>香港仔隧道五大信念猜字謎挑戰</h1>
+
     <div id="info-bar">
         <strong>完成進度: <span id="count">0</span> / 15</strong><br>
         時間: <span id="timer">0</span> 秒
     </div>
 
+    <button id="submit-btn" onclick="manualSubmit()">結束並提交成績</button>
     <div id="grid-container"></div>
     <div id="word-list"></div>
 
     <script>
         // ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼
-        // 【重要】請確保這裡貼上了你的 Apps Script 網址 (保留雙引號)
+        // 【記得檢查這裡是不是你的 Apps Script 網址！】
         const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwmVYMnHqcVf6IA6FK1GDlXLsiSOSYZcqoeMcAx6zBOrN871Bqv3Vhu4H8EW7k9RcuX/exec"; 
         // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
         const words = ["以客為尊", "創新與科技", "卓越服務", "團隊精神", "精益求精", "無微不至", "體貼入微", "推陳出新", "與時俱進", "一絲不苟", "貼心周到", "同舟共濟", "團結一心", "力求完美", "學無止境"];
         
-        // 矩陣內容
         const gridRows = [
             "以客為尊步步高一絲不苟興",
             "萬事興創意無限好運來喜樂",
@@ -88,6 +111,7 @@
         const container = document.getElementById('grid-container');
         const foundWords = new Set();
         let seconds = 0;
+        let gameEnded = false; // 防止重複提交
 
         // 生成矩陣
         gridArray.forEach((char, i) => {
@@ -110,7 +134,7 @@
         // 計時器
         let timerRunning = true;
         const timerObj = setInterval(() => {
-            if(timerRunning) {
+            if(timerRunning && !gameEnded) {
                 seconds++;
                 document.getElementById('timer').innerText = seconds;
             }
@@ -122,6 +146,7 @@
         let selectedIndices = [];
 
         function handleStart(e) {
+            if(gameEnded) return;
             isSelecting = true;
             const t = e.touches ? e.touches[0] : e;
             const el = document.elementFromPoint(t.clientX, t.clientY);
@@ -133,7 +158,7 @@
         }
 
         function handleMove(e) {
-            if (!isSelecting) return;
+            if (!isSelecting || gameEnded) return;
             const t = e.touches ? e.touches[0] : e;
             const el = document.elementFromPoint(t.clientX, t.clientY);
             
@@ -145,13 +170,13 @@
                 document.querySelectorAll('.cell').forEach(c => c.classList.remove('selected'));
                 selectedIndices = [];
 
-                if (sR === cR) { // 橫向
+                if (sR === cR) { // 橫
                     for (let c = Math.min(sC, cC); c <= Math.max(sC, cC); c++) {
                         const idx = sR * 12 + c;
                         selectedIndices.push(idx);
                         container.children[idx].classList.add('selected');
                     }
-                } else if (sC === cC) { // 直向
+                } else if (sC === cC) { // 直
                     for (let r = Math.min(sR, cR); r <= Math.max(sR, cR); r++) {
                         const idx = r * 12 + sC;
                         selectedIndices.push(idx);
@@ -162,7 +187,7 @@
         }
 
         function handleEnd() {
-            if (!isSelecting) return;
+            if (!isSelecting || gameEnded) return;
             isSelecting = false;
             const str = selectedIndices.map(i => gridArray[i]).join("");
             const rev = str.split("").reverse().join("");
@@ -175,39 +200,60 @@
                 document.getElementById('count').innerText = foundWords.size;
                 
                 if (foundWords.size === words.length) {
-                    clearInterval(timerObj);
-                    timerRunning = false;
-                    setTimeout(async () => {
-                        // 如果有設定網址，才執行上傳
-                        if(GOOGLE_SCRIPT_URL.includes("http")) {
-                            const userName = prompt("恭喜完成！請輸入您的姓名：");
-                            const empId = prompt("請輸入您的員工編號：");
-                            
-                            if(userName) {
-                                alert("正在上傳成績，請稍候...");
-                                try {
-                                    await fetch(GOOGLE_SCRIPT_URL, {
-                                        method: 'POST',
-                                        mode: 'no-cors',
-                                        headers: { 'Content-Type': 'application/json' },
-                                        body: JSON.stringify({
-                                            name: userName,
-                                            empId: empId,
-                                            seconds: seconds
-                                        })
-                                    });
-                                    alert("✅ 成績已成功上傳！感謝參與！");
-                                } catch (error) {
-                                    alert("⚠️ 上傳失敗，請截圖給負責人。\n時間: " + seconds + "秒");
-                                }
-                            }
-                        } else {
-                            alert("恭喜完成！(尚未設定後台，無法上傳)");
-                        }
-                    }, 500);
+                    timerRunning = false; // 保留這行 (讓時間停止)
+                    // alert 行已經刪除，現在找齊後不會有任何彈出視窗
                 }
             }
             document.querySelectorAll('.cell').forEach(c => c.classList.remove('selected'));
+        }
+
+        // ▼▼▼ 新增：手動提交按鈕邏輯 ▼▼▼
+        async function manualSubmit() {
+            if(gameEnded) return alert("你已經提交過成績了！");
+            
+            timerRunning = false; // 停止計時
+            
+            let confirmMsg = `你目前找到了 ${foundWords.size} / 15 個答案。\n所用時間：${seconds} 秒。\n確定要現在提交嗎？`;
+            if(!confirm(confirmMsg)) {
+                timerRunning = true; // 如果按取消，繼續計時
+                return;
+            }
+
+            gameEnded = true; // 鎖定遊戲
+
+            if(GOOGLE_SCRIPT_URL.includes("http")) {
+                const userName = prompt("請輸入您的姓名：");
+                const empId = prompt("請輸入您的員工編號：");
+                
+                if(userName) {
+                    document.getElementById('submit-btn').innerText = "正在上傳...";
+                    document.getElementById('submit-btn').disabled = true;
+
+                    try {
+                        await fetch(GOOGLE_SCRIPT_URL, {
+                            method: 'POST',
+                            mode: 'no-cors',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                name: userName,
+                                empId: empId,
+                                score: foundWords.size + " / 15", // 這裡新增了成績
+                                seconds: seconds
+                            })
+                        });
+                        alert("✅ 成績已成功上傳！感謝參與！");
+                        document.getElementById('submit-btn').innerText = "上傳成功";
+                    } catch (error) {
+                        alert("⚠️ 上傳失敗，請截圖給負責人。\n分數: " + foundWords.size + "\n時間: " + seconds);
+                        gameEnded = false; // 失敗允許重試
+                    }
+                } else {
+                    gameEnded = false;
+                    alert("您取消了輸入，請重新按提交。");
+                }
+            } else {
+                alert("恭喜完成！(尚未設定後台網址)");
+            }
         }
 
         container.addEventListener('touchstart', handleStart);
