@@ -7,6 +7,17 @@
     <style>
         :root { --primary: #003a70; }
         body { font-family: "Microsoft JhengHei", sans-serif; margin: 0; padding: 10px; text-align: center; background: #f4f7f9; touch-action: none; overflow-x: hidden; }
+        
+        /* ▼▼▼ 新增標題樣式 ▼▼▼ */
+        h1 {
+            color: var(--primary);
+            margin: 10px 0 15px 0;
+            font-size: 7vw; /* 手機版字體 */
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+        @media (min-width: 480px) { h1 { font-size: 36px; } } /* 電腦版字體固定 */
+        /* ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲ */
+
         #info-bar { background: white; padding: 10px; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         #grid-container { 
             display: grid; 
@@ -20,7 +31,7 @@
             user-select: none;
         }
         .cell { 
-            background: white; 
+            background: rgb(0, 195, 255); 
             aspect-ratio: 1;
             display: flex; 
             align-items: center; 
@@ -37,8 +48,9 @@
 </head>
 <body>
 
+    <h1>香港仔隧道五大信念猜字謎挑戰</h1>
     <div id="info-bar">
-        <strong>尋寶進度: <span id="count">0</span> / 15</strong><br>
+        <strong>完成進度: <span id="count">0</span> / 15</strong><br>
         時間: <span id="timer">0</span> 秒
     </div>
 
@@ -47,13 +59,13 @@
 
     <script>
         // ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼
-        // 【請在這裡貼上你 Apps Script 的網址 (保留雙引號)】
+        // 【重要】請確保這裡貼上了你的 Apps Script 網址 (保留雙引號)
         const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwmVYMnHqcVf6IA6FK1GDlXLsiSOSYZcqoeMcAx6zBOrN871Bqv3Vhu4H8EW7k9RcuX/exec"; 
         // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
         const words = ["以客為尊", "創新與科技", "卓越服務", "團隊精神", "精益求精", "無微不至", "體貼入微", "推陳出新", "與時俱進", "一絲不苟", "貼心周到", "同舟共濟", "團結一心", "力求完美", "學無止境"];
         
-        // 這是你自己設計的矩陣 (共13行，非常好！)
+        // 矩陣內容
         const gridRows = [
             "以客為尊步步高一絲不苟興",
             "萬事興創意無限好運來喜樂",
@@ -67,12 +79,11 @@
             "止氣東來同舟共濟年年有餘",
             "境隨心轉萬事勝意前程似錦",
             "心想事成福氣滿卓越服務讚",
-            "好人一生平安龍馬精神大吉" 
+            "好人一生平安龍馬精神大吉"
         ];
-        // 注意：為了防止錯誤，我加多了一行在最後確保矩陣完整，或者你可以刪除上面最後一行
 
         let rawString = gridRows.join("");
-        const gridArray = rawString.split(""); // 這裡會自動根據文字數量生成
+        const gridArray = rawString.split("");
         
         const container = document.getElementById('grid-container');
         const foundWords = new Set();
@@ -105,7 +116,7 @@
             }
         }, 1000);
 
-        // --- 核心邏輯：鎖定打橫打直 (這部分是你原本缺少的) ---
+        // 滑動邏輯
         let isSelecting = false;
         let startIdx = -1;
         let selectedIndices = [];
@@ -128,16 +139,12 @@
             
             if (el && el.classList.contains('cell')) {
                 const currentIdx = parseInt(el.getAttribute('data-index'));
-                
-                // 計算座標 (12是原本的寬度)
                 const sR = Math.floor(startIdx / 12), sC = startIdx % 12;
                 const cR = Math.floor(currentIdx / 12), cC = currentIdx % 12;
 
-                // 重置樣式
                 document.querySelectorAll('.cell').forEach(c => c.classList.remove('selected'));
                 selectedIndices = [];
 
-                // 判斷方向：只有同一行或同一列才允許畫線
                 if (sR === cR) { // 橫向
                     for (let c = Math.min(sC, cC); c <= Math.max(sC, cC); c++) {
                         const idx = sR * 12 + c;
@@ -167,14 +174,11 @@
                 document.getElementById('word-' + f).className = 'word-found';
                 document.getElementById('count').innerText = foundWords.size;
                 
-                // 檢查是否完成
                 if (foundWords.size === words.length) {
                     clearInterval(timerObj);
                     timerRunning = false;
-                    
-                    // 延遲一點點才彈出輸入框，體驗較好
                     setTimeout(async () => {
-                        // 這裡是你原本缺少的部分：輸入資料並上傳
+                        // 如果有設定網址，才執行上傳
                         if(GOOGLE_SCRIPT_URL.includes("http")) {
                             const userName = prompt("恭喜完成！請輸入您的姓名：");
                             const empId = prompt("請輸入您的員工編號：");
@@ -194,11 +198,11 @@
                                     });
                                     alert("✅ 成績已成功上傳！感謝參與！");
                                 } catch (error) {
-                                    alert("⚠️ 上傳失敗，請截圖此畫面給負責人。\n時間: " + seconds + "秒");
+                                    alert("⚠️ 上傳失敗，請截圖給負責人。\n時間: " + seconds + "秒");
                                 }
                             }
                         } else {
-                            alert("恭喜完成！(尚未設定後台網址)");
+                            alert("恭喜完成！(尚未設定後台，無法上傳)");
                         }
                     }, 500);
                 }
@@ -215,4 +219,3 @@
     </script>
 </body>
 </html>
-
