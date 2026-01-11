@@ -9,20 +9,20 @@
         body { 
             font-family: "Microsoft JhengHei", sans-serif; 
             margin: 0; 
-            padding: 10px; 
+            padding: 10px 10px 50px 10px; 
             text-align: center; 
             background: skyblue; 
-            touch-action: none; 
+            touch-action: pan-y; 
             overflow-x: hidden; 
         }
         
         h1 {
             color: var(--primary);
             margin: 10px 0 15px 0;
-            font-size: 5vw; 
+            font-size: 6vw;
             text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5);
         }
-        @media (min-width: 480px) { h1 { font-size: 36px; } }
+        @media (min-width: 480px) { h1 { font-size: 32px; } }
 
         #info-bar { background: white; padding: 10px; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         
@@ -49,6 +49,7 @@
             width: 90vw;
             max-width: 480px;
             user-select: none;
+            touch-action: none;
         }
         .cell { 
             background: white; 
@@ -57,7 +58,7 @@
             align-items: center; 
             justify-content: center; 
             font-weight: bold; 
-            font-size: 4vw; 
+            font-size: 4vw;
         }
         @media (min-width: 480px) { .cell { font-size: 20px; } }
         .selected { background: #ffeb3b !important; }
@@ -66,12 +67,11 @@
         #word-list { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-top: 15px; padding: 10px; background: #fff; font-size: 13px; text-align: left; border-radius: 8px; }
         .word-found { text-decoration: line-through; color: #ccc; }
 
-        /* 玩法框樣式 */
         #instruction-box {
             background: white;
             padding: 15px;
             border-radius: 8px;
-            margin: 15px auto 0 auto; /* 上方留位，下方貼住清單 */
+            margin: 15px auto; /* 調整間距 */
             width: 90vw;
             max-width: 480px;
             text-align: left;
@@ -106,6 +106,8 @@
     <button id="submit-btn" onclick="manualSubmit()">結束並提交成績</button>
     
     <div id="grid-container"></div>
+    
+    <p style="font-size:12px; color:#555; margin-top:5px;">(如需查看下方內容，請觸碰兩側空白處滑動)</p>
 
     <div id="instruction-box">
         <h3>📖 遊戲玩法</h3>
@@ -116,11 +118,11 @@
             <li>完成挑戰後，按綠色按鈕提交成績。</li>
         </ul>
     </div>
-    <div id="word-list"></div>
 
+    <div id="word-list"></div>
     <script>
         // ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼
-        // 已保留你的 Apps Script 網址
+        // 【請確認這裡已填入你的 Apps Script 網址】
         const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwmVYMnHqcVf6IA6FK1GDlXLsiSOSYZcqoeMcAx6zBOrN871Bqv3Vhu4H8EW7k9RcuX/exec"; 
         // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
@@ -180,10 +182,12 @@
 
         function handleStart(e) {
             if(gameEnded) return;
-            isSelecting = true;
             const t = e.touches ? e.touches[0] : e;
             const el = document.elementFromPoint(t.clientX, t.clientY);
+            
             if (el && el.classList.contains('cell')) {
+                if(e.cancelable && e.type === 'touchstart') e.preventDefault();
+                isSelecting = true;
                 startIdx = parseInt(el.getAttribute('data-index'));
                 selectedIndices = [startIdx];
                 el.classList.add('selected');
@@ -192,6 +196,8 @@
 
         function handleMove(e) {
             if (!isSelecting || gameEnded) return;
+            if(e.cancelable) e.preventDefault();
+
             const t = e.touches ? e.touches[0] : e;
             const el = document.elementFromPoint(t.clientX, t.clientY);
             
@@ -287,9 +293,10 @@
             }
         }
 
-        container.addEventListener('touchstart', handleStart);
+        container.addEventListener('touchstart', handleStart, {passive: false});
         window.addEventListener('touchmove', handleMove, {passive: false});
         window.addEventListener('touchend', handleEnd);
+        
         container.addEventListener('mousedown', handleStart);
         window.addEventListener('mousemove', handleMove);
         window.addEventListener('mouseup', handleEnd);
