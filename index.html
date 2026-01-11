@@ -19,16 +19,15 @@
         h1 {
             color: var(--primary);
             margin: 10px 0 15px 0;
-            font-size: 6vw;
+            font-size: 5vw; 
             text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5);
         }
         @media (min-width: 480px) { h1 { font-size: 36px; } }
 
         #info-bar { background: white; padding: 10px; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         
-        /* ▼▼▼ 新增按鈕樣式 ▼▼▼ */
         #submit-btn {
-            background: #28a745; /* 綠色 */
+            background: #28a745;
             color: white;
             border: none;
             padding: 10px 20px;
@@ -39,7 +38,6 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
         #submit-btn:active { background: #218838; transform: translateY(2px); }
-        /* ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲ */
 
         #grid-container { 
             display: grid; 
@@ -59,13 +57,41 @@
             align-items: center; 
             justify-content: center; 
             font-weight: bold; 
-            font-size: 5vw; 
+            font-size: 4vw; 
         }
         @media (min-width: 480px) { .cell { font-size: 20px; } }
         .selected { background: #ffeb3b !important; }
         .found { background: #4caf50 !important; color: white; }
+        
         #word-list { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-top: 15px; padding: 10px; background: #fff; font-size: 13px; text-align: left; border-radius: 8px; }
         .word-found { text-decoration: line-through; color: #ccc; }
+
+        /* 玩法框樣式 */
+        #instruction-box {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px auto 0 auto; /* 上方留位，下方貼住清單 */
+            width: 90vw;
+            max-width: 480px;
+            text-align: left;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            font-size: 14px;
+            line-height: 1.6;
+            color: #333;
+        }
+        #instruction-box h3 {
+            margin-top: 0;
+            color: var(--primary);
+            text-align: center;
+            border-bottom: 2px solid #f4f7f9;
+            padding-bottom: 10px;
+            font-size: 18px;
+        }
+        #instruction-box ul {
+            padding-left: 20px;
+            margin-bottom: 0;
+        }
     </style>
 </head>
 <body>
@@ -78,12 +104,23 @@
     </div>
 
     <button id="submit-btn" onclick="manualSubmit()">結束並提交成績</button>
+    
     <div id="grid-container"></div>
+
+    <div id="instruction-box">
+        <h3>📖 遊戲玩法</h3>
+        <ul>
+            <li>在字海中找出 <strong>5個</strong> 公司核心信念及 <strong>10個</strong> 核心信念相關成語。</li>
+            <li>手指（或滑鼠）<strong>橫向</strong> 或 <strong>直向</strong> 滑動連字。</li>
+            <li>如有困難，可參考下方的詞語清單。</li>
+            <li>完成挑戰後，按綠色按鈕提交成績。</li>
+        </ul>
+    </div>
     <div id="word-list"></div>
 
     <script>
         // ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼
-        // 【記得檢查這裡是不是你的 Apps Script 網址！】
+        // 已保留你的 Apps Script 網址
         const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwmVYMnHqcVf6IA6FK1GDlXLsiSOSYZcqoeMcAx6zBOrN871Bqv3Vhu4H8EW7k9RcuX/exec"; 
         // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
@@ -111,9 +148,8 @@
         const container = document.getElementById('grid-container');
         const foundWords = new Set();
         let seconds = 0;
-        let gameEnded = false; // 防止重複提交
+        let gameEnded = false;
 
-        // 生成矩陣
         gridArray.forEach((char, i) => {
             const cell = document.createElement('div');
             cell.className = 'cell';
@@ -122,7 +158,6 @@
             container.appendChild(cell);
         });
 
-        // 生成清單
         const listContainer = document.getElementById('word-list');
         words.forEach(w => {
             const div = document.createElement('div');
@@ -131,7 +166,6 @@
             listContainer.appendChild(div);
         });
 
-        // 計時器
         let timerRunning = true;
         const timerObj = setInterval(() => {
             if(timerRunning && !gameEnded) {
@@ -140,7 +174,6 @@
             }
         }, 1000);
 
-        // 滑動邏輯
         let isSelecting = false;
         let startIdx = -1;
         let selectedIndices = [];
@@ -200,26 +233,24 @@
                 document.getElementById('count').innerText = foundWords.size;
                 
                 if (foundWords.size === words.length) {
-                    timerRunning = false; // 保留這行 (讓時間停止)
-                    // alert 行已經刪除，現在找齊後不會有任何彈出視窗
+                    timerRunning = false; 
                 }
             }
             document.querySelectorAll('.cell').forEach(c => c.classList.remove('selected'));
         }
 
-        // ▼▼▼ 新增：手動提交按鈕邏輯 ▼▼▼
         async function manualSubmit() {
             if(gameEnded) return alert("你已經提交過成績了！");
             
-            timerRunning = false; // 停止計時
+            timerRunning = false;
             
             let confirmMsg = `你目前找到了 ${foundWords.size} / 15 個答案。\n所用時間：${seconds} 秒。\n確定要現在提交嗎？`;
             if(!confirm(confirmMsg)) {
-                timerRunning = true; // 如果按取消，繼續計時
+                timerRunning = true;
                 return;
             }
 
-            gameEnded = true; // 鎖定遊戲
+            gameEnded = true;
 
             if(GOOGLE_SCRIPT_URL.includes("http")) {
                 const userName = prompt("請輸入您的姓名：");
@@ -237,7 +268,7 @@
                             body: JSON.stringify({
                                 name: userName,
                                 empId: empId,
-                                score: foundWords.size + " / 15", // 這裡新增了成績
+                                score: foundWords.size + " / 15",
                                 seconds: seconds
                             })
                         });
@@ -245,7 +276,7 @@
                         document.getElementById('submit-btn').innerText = "上傳成功";
                     } catch (error) {
                         alert("⚠️ 上傳失敗，請截圖給負責人。\n分數: " + foundWords.size + "\n時間: " + seconds);
-                        gameEnded = false; // 失敗允許重試
+                        gameEnded = false;
                     }
                 } else {
                     gameEnded = false;
