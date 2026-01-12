@@ -122,7 +122,7 @@
     <div id="word-list"></div>
 
     <script>
-        // ▼▼▼ 已填好你的網址 ▼▼▼
+        // ▼▼▼ Google_Script_function ▼▼▼
         const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx0FpNFxYRXQXys69CcqZeLIKf_-Xkkup1VnxsF8QO-4VxgptolyBr_RXlijFJvXlm2/exec"; 
         // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
@@ -250,7 +250,7 @@
             
             timerRunning = false;
             
-            // ▼▼▼ 改用傳統字串組合，保證不會出錯 ▼▼▼
+            // ▼▼▼  ▼▼▼
             let confirmMsg = "你目前找到了 " + foundWords.size + " / 15 個答案。\n所用時間：" + seconds + " 秒。\n確定要現在提交嗎？";
             
             if(!confirm(confirmMsg)) {
@@ -264,7 +264,7 @@
                 const userName = prompt("請輸入您的姓名：");
                 const empId = prompt("請輸入您的員工編號：");
                 
-                // 收集已找到的字
+                // record answer function
                 const foundListString = Array.from(foundWords).join("、");
 
                 if(userName) {
@@ -309,3 +309,4 @@
     </script>
 </body>
 </html>
+
